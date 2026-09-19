@@ -164,12 +164,24 @@
         <h2>📋 Forgiveness Log Dashboard</h2>
         <button id="admin-close-btn" class="modal-close-btn" aria-label="Close">&times;</button>
       </div>
-      <p class="admin-subtext">Records of responses on this website:</p>
+      <p class="admin-subtext">Live records & cross-device alert settings:</p>
+      
       <div id="admin-log-list" class="admin-log-list">
         <!-- Dynamic log items -->
       </div>
+
+      <!-- Cross-Device Webhook Alert Config -->
+      <div class="webhook-config-box">
+        <label for="webhook-url-input">📱 Phone Notification (Discord / Telegram Webhook):</label>
+        <div class="webhook-input-group">
+          <input type="text" id="webhook-url-input" placeholder="Paste Discord/Webhook URL here..." />
+          <button id="save-webhook-btn" class="save-webhook-btn">Save Alert</button>
+        </div>
+        <small class="webhook-help">Instant push notification on your main phone when YES is clicked on ANY device!</small>
+      </div>
+
       <div class="admin-footer-actions">
-        <button id="clear-logs-btn" class="clear-logs-btn">Clear Logs</button>
+        <button id="clear-logs-btn" class="clear-logs-btn">Clear Local Logs</button>
       </div>
     </div>
   </div>

@@ -1040,3 +1040,63 @@ html, body {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Webhook Alert Box Styles */
+.webhook-config-box {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.webhook-config-box label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 8px;
+}
+
+.webhook-input-group {
+  display: flex;
+  gap: 8px;
+}
+
+.webhook-input-group input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.webhook-input-group input:focus {
+  border-color: #ff4d6d;
+}
+
+.save-webhook-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.save-webhook-btn:hover {
+  background: #1d4ed8;
+}
+
+.webhook-help {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+

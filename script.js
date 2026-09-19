@@ -205,7 +205,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Handle YES Click - Save Log & Notify Vercel API
+  const webhookUrlInput = document.getElementById('webhook-url-input');
+  const saveWebhookBtn = document.getElementById('save-webhook-btn');
+
+  // Load saved webhook on admin modal open
+  if (webhookUrlInput) {
+    webhookUrlInput.value = localStorage.getItem('almika_alert_webhook') || '';
+  }
+
+  if (saveWebhookBtn) {
+    saveWebhookBtn.addEventListener('click', () => {
+      const url = webhookUrlInput.value.trim();
+      if (url) {
+        localStorage.setItem('almika_alert_webhook', url);
+        alert('Alert Webhook saved! You will receive instant push notifications when YES is clicked.');
+      } else {
+        localStorage.removeItem('almika_alert_webhook');
+        alert('Alert Webhook cleared.');
+      }
+    });
+  }
+
+  // Handle YES Click - Save Log & Notify Vercel API & Webhook
   if (forgiveYesBtn) {
     forgiveYesBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -228,17 +249,31 @@ document.addEventListener('DOMContentLoaded', () => {
       existingLogs.unshift(logEntry);
       localStorage.setItem('almika_forgiveness_logs', JSON.stringify(existingLogs));
 
-      // 2. Send Log to Vercel Serverless Function (Shows in Vercel Dashboard Logs)
+      const savedWebhook = localStorage.getItem('almika_alert_webhook') || '';
+
+      // 2. Send Log to Vercel Serverless Function & Webhook
       fetch('/api/log-forgiveness', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           choice: 'YES - Forgiven!',
-          timestamp: now.toISOString()
+          timestamp: now.toISOString(),
+          webhookUrl: savedWebhook
         })
       }).catch(err => console.log('Log server endpoint note:', err));
 
-      // 3. UI Feedback
+      // 3. Direct Webhook Fallback (if client-side webhook is saved)
+      if (savedWebhook && savedWebhook.startsWith('http')) {
+        fetch(savedWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: `🎉 **Almika pressed YES to forgive Angel!** ❤️\n🕒 **Time:** ${formattedTime}\n📱 **Device:** ${navigator.userAgent.slice(0, 80)}`
+          })
+        }).catch(e => console.log('Direct webhook dispatch note:', e));
+      }
+
+      // 4. UI Feedback
       createHeartBurst(window.innerWidth / 2, window.innerHeight / 2, 30);
       modalButtonsRow.classList.add('hidden');
       modalSuccessMsg.classList.remove('hidden');
@@ -264,15 +299,32 @@ document.addEventListener('DOMContentLoaded', () => {
     forgiveNoBtn.addEventListener('click', moveNoBtn);
   }
 
-  // Admin Dashboard Log Viewer
-  function renderAdminLogs() {
-    const logs = JSON.parse(localStorage.getItem('almika_forgiveness_logs') || '[]');
+  // Admin Dashboard Log Viewer (Fetches local & server API logs)
+  async function renderAdminLogs() {
+    let logs = JSON.parse(localStorage.getItem('almika_forgiveness_logs') || '[]');
+
+    // Try fetching Cloud KV logs from server
+    try {
+      const res = await fetch('/api/get-logs');
+      const data = await res.json();
+      if (data.success && data.logs && data.logs.length > 0) {
+        logs = data.logs;
+      }
+    } catch (e) {
+      console.log('Server logs fetch note:', e);
+    }
+
     if (logs.length === 0) {
-      adminLogList.innerHTML = '<div class="no-logs-msg">No logs recorded yet. Waiting for Almika to press Yes! 💖</div>';
+      adminLogList.innerHTML = `
+        <div class="no-logs-msg">
+          No logs recorded yet. Waiting for Almika to press Yes! 💖<br>
+          <small style="color:#94a3b8;">Tip: Save a Discord/Telegram Webhook below to get instant phone alerts from any device!</small>
+        </div>
+      `;
     } else {
       adminLogList.innerHTML = logs.map(item => `
         <div class="admin-log-item">
-          <span class="log-action">🎉 ${item.action}</span>
+          <span class="log-action">🎉 ${item.action || 'YES - Forgiven!'}</span>
           <span class="log-time">🕒 ${item.timestamp}</span>
         </div>
       `).join('');
