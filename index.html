@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>A Letter For Almika ❤️</title>
+  <meta name="description" content="A special digital interactive love letter with smooth animations, paper butterflies, and raining flowers for Almika." />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Background Animated Canvas for Raining Flowers -->
+  <canvas id="flower-canvas"></canvas>
+
+  <!-- Container for Dynamic 3D Paper Butterflies -->
+  <div id="butterfly-container"></div>
+
+  <!-- Background Ambient Glow & Floating Hearts -->
+  <div class="ambient-background">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+  </div>
+
+  <!-- Audio Control Toggle -->
+  <button id="sound-toggle" class="glass-btn sound-btn" aria-label="Toggle Sound">
+    <span id="sound-icon">🔊</span> Sound ON
+  </button>
+
+  <!-- Replay Button (Appears after unfolding) -->
+  <button id="replay-btn" class="glass-btn replay-btn hidden" aria-label="Replay Experience">
+    ✨ Replay Magic
+  </button>
+
+  <!-- Main Interactive Experience Stage -->
+  <main class="experience-container">
+
+    <!-- Interactive Hint Tooltip -->
+    <div id="hint-badge" class="hint-badge">
+      <span class="hint-sparkle">✨</span>
+      <span id="hint-text">Click the envelope to open it</span>
+      <span class="hint-sparkle">✨</span>
+    </div>
+
+    <!-- Envelope Stage Wrapper -->
+    <div id="envelope-stage" class="envelope-stage state-0">
+      
+      <div class="perspective-wrapper">
+        <!-- The Envelope Item -->
+        <div id="envelope" class="envelope">
+          
+          <!-- Back Interior Layer of Envelope -->
+          <div class="envelope-back"></div>
+
+          <!-- Inside Pocket Gradient Shadow -->
+          <div class="envelope-pocket-shadow"></div>
+
+          <!-- The Slide-out & Unfolding Letter -->
+          <div id="letter" class="letter">
+            
+            <!-- Fold Lines Overlay for realistic paper look when folded -->
+            <div class="paper-crease top-crease"></div>
+            <div class="paper-crease bottom-crease"></div>
+
+            <!-- Folded Cover Preview (Visible in stage 1 & 2) -->
+            <div class="letter-preview">
+              <div class="stamp-seal">💌</div>
+              <div class="preview-title">To Almika</div>
+            </div>
+
+            <!-- Unfolded Full Content (Revealed in Stage 3) -->
+            <div class="letter-inner">
+              <div class="letter-header">
+                <span class="letter-date">Forever & Always</span>
+                <div class="decorative-line"></div>
+              </div>
+
+              <div class="letter-body">
+                <h1 class="main-declaration">I Love you Almika</h1>
+                
+                <p class="love-message">
+                  Every moment with you feels like magic. You bring warmth, laughter, and endless joy into my world.
+                </p>
+
+                <!-- Cat Image Container -->
+                <div class="cat-display-wrapper">
+                  <div class="cat-glow"></div>
+                  <img src="cat.png" alt="Cute Cat" class="cat-img" id="cat-image" />
+                  <div class="cat-heart-badge">💖</div>
+                </div>
+
+                <div class="sparkle-row">
+                  <span>🌸</span>
+                  <span>✨</span>
+                  <span>💕</span>
+                  <span>✨</span>
+                  <span>🌸</span>
+                </div>
+              </div>
+
+              <div class="letter-footer">
+                <span class="signature">Yours Always, With All My Heart</span>
+                <button id="forgive-btn" class="forgive-btn">
+                  Forgive? 🥺❤️
+                </button>
+              </div>
+            </div>
+
+          </div> <!-- /letter -->
+
+          <!-- Front Pocket of Envelope (Covers lower half of letter) -->
+          <div class="envelope-front"></div>
+
+          <!-- Top Flap (Opens upwards in 3D) -->
+          <div class="envelope-flap">
+            <!-- Wax Seal on Flap -->
+            <div id="wax-seal" class="wax-seal">
+              <div class="seal-inner">
+                <span>❤️</span>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- /envelope -->
+      </div> <!-- /perspective-wrapper -->
+
+    </div> <!-- /envelope-stage -->
+
+  </main>
+
+  <!-- Pink Forgiveness Modal Prompt -->
+  <div id="forgive-modal" class="modal-overlay hidden">
+    <div class="pink-modal-card">
+      <button id="modal-close-btn" class="modal-close-btn" aria-label="Close">&times;</button>
+      <div class="modal-cat-icon">🐱💖</div>
+      <h2 class="modal-title">Do you forgive Angel?</h2>
+      <p class="modal-subtext">Angel is super sorry and loves you more than anything in the whole world! 🥺👉👈</p>
+
+      <div id="modal-buttons-row" class="modal-buttons-row">
+        <button id="forgive-yes-btn" class="modal-btn yes-btn">Yes, I forgive you! 💖</button>
+        <button id="forgive-no-btn" class="modal-btn no-btn">Not yet 🙈</button>
+      </div>
+
+      <!-- Response Log Success Message -->
+      <div id="modal-success-msg" class="modal-success-msg hidden">
+        <div class="success-heart">🎉💖✨</div>
+        <h3 class="success-title">Thank You Almika!</h3>
+        <p class="success-desc">Angel promises to make you smile every single day! 💕</p>
+        <div class="logged-badge">✓ Logged & Saved with Love</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Forgiveness Log Viewer Modal -->
+  <div id="admin-log-modal" class="modal-overlay hidden">
+    <div class="admin-modal-card">
+      <div class="admin-header">
+        <h2>📋 Forgiveness Log Dashboard</h2>
+        <button id="admin-close-btn" class="modal-close-btn" aria-label="Close">&times;</button>
+      </div>
+      <p class="admin-subtext">Records of responses on this website:</p>
+      <div id="admin-log-list" class="admin-log-list">
+        <!-- Dynamic log items -->
+      </div>
+      <div class="admin-footer-actions">
+        <button id="clear-logs-btn" class="clear-logs-btn">Clear Logs</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secret Admin Link Trigger in Footer -->
+  <button id="secret-admin-btn" class="secret-admin-btn" title="View Forgiveness Logs (Ctrl+Shift+L)">
+    🔒 Logs
+  </button>
+
+  <!-- Interactive Floating Heart Particle Layer -->
+  <div id="heart-burst-container"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

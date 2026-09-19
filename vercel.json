@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "letter-for-almika",
+  "builds": [
+    {
+      "src": "*",
+      "use": "@vercel/static"
+    }
+  ]
+}
