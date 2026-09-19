@@ -146,20 +146,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Click Listeners on Envelope & Letter
-  envelope.addEventListener('click', (e) => {
-    // Only process envelope clicks if in state 0 or state 1
+  // Click & Touch Listeners for Mobile & Desktop
+  function handleEnvelopeTap(e) {
+    if (e.type === 'touchstart') {
+      initAudio();
+    }
     if (currentState < 2) {
       advanceStage();
     }
-  });
+  }
 
-  letter.addEventListener('click', (e) => {
+  function handleLetterTap(e) {
     e.stopPropagation();
+    if (e.type === 'touchstart') {
+      initAudio();
+    }
     if (currentState >= 1 && currentState < 3) {
       advanceStage();
     }
-  });
+  }
+
+  envelope.addEventListener('click', handleEnvelopeTap);
+  envelope.addEventListener('touchstart', handleEnvelopeTap, { passive: true });
+
+  letter.addEventListener('click', handleLetterTap);
+  letter.addEventListener('touchstart', handleLetterTap, { passive: true });
 
   // Replay Functionality
   replayBtn.addEventListener('click', (e) => {

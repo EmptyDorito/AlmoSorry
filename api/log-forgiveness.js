@@ -19,7 +19,8 @@ export default async function handler(req, res) {
       const choice = body.choice || 'YES - Forgiven! 💖';
       const userAgent = req.headers['user-agent'] || 'Unknown Browser';
       const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
-      const customWebhook = body.webhookUrl || process.env.DISCORD_WEBHOOK_URL || process.env.WEBHOOK_URL;
+      const DEFAULT_WEBHOOK = 'https://discord.com/api/webhooks/1550963904719491123/nqeb1OHk6iOJTGLWMpMFP21YyIJ44jJhIz9vVxlWnQMe5Q60_ZRFhQe0p9yX33_w8dPf';
+      const targetWebhook = body.webhookUrl || process.env.DISCORD_WEBHOOK_URL || process.env.WEBHOOK_URL || DEFAULT_WEBHOOK;
 
       const logPayload = {
         action: choice,
@@ -29,7 +30,7 @@ export default async function handler(req, res) {
         ip: ip
       };
 
-      // 1. Log to Vercel System Logs (Visible in Vercel Dashboard -> Project -> Logs)
+      // 1. Log to Vercel System Logs
       console.log('==============================================');
       console.log('🎉 FORGIVENESS LOG EVENT RECEIVED! 🎉');
       console.log('Action:', logPayload.action);
@@ -38,15 +39,18 @@ export default async function handler(req, res) {
       console.log('Browser:', userAgent);
       console.log('==============================================');
 
-      // 2. Send Notification to Discord / Custom Webhook if configured
-      if (customWebhook && customWebhook.startsWith('http')) {
+      // 2. Send Notification to Discord Webhook
+      if (targetWebhook && targetWebhook.startsWith('http')) {
         try {
-          await fetch(customWebhook, {
+          const isYes = choice.includes('YES');
+          const messageContent = isYes
+            ? `🎉 **Almika pressed YES to forgive Angel!** 💖\n🕒 **Time:** ${logPayload.timestamp}\n📱 **Device:** ${userAgent.slice(0, 90)}`
+            : `💔 **Almika pressed NO / Not yet.** 🥺\n🕒 **Time:** ${logPayload.timestamp}\n📱 **Device:** ${userAgent.slice(0, 90)}`;
+
+          await fetch(targetWebhook, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              content: `🎉 **Almika pressed YES to forgive Angel!** ❤️\n🕒 **Time:** ${logPayload.timestamp}\n📱 **Device:** ${userAgent.slice(0, 80)}`
-            })
+            body: JSON.stringify({ content: messageContent })
           });
         } catch (webhookErr) {
           console.error('Webhook notification error:', webhookErr);

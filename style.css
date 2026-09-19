@@ -677,12 +677,20 @@ html, body {
 }
 
 /* Responsive Tweaks */
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .hint-badge {
+    top: 65px;
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    max-width: 90vw;
+    text-align: center;
+  }
+
   .envelope-stage {
     width: 290px;
     height: 200px;
   }
-  
+
   .envelope-front {
     border-left-width: 145px;
     border-right-width: 145px;
@@ -709,21 +717,86 @@ html, body {
   }
 
   .letter.unfolded-fullscreen {
-    width: 92vw !important;
-    height: 82vh !important;
+    width: 94vw !important;
+    height: 88vh !important;
+    max-height: 88vh !important;
+    border-radius: 16px;
+  }
+
+  .letter-inner {
+    padding: 16px 14px !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .letter-date {
+    font-size: 1.1rem;
   }
 
   .main-declaration {
-    font-size: 2.2rem;
+    font-size: 2.0rem !important;
+    margin-bottom: 2px;
   }
 
   .love-message {
-    font-size: 0.95rem;
+    font-size: 0.9rem !important;
+    line-height: 1.45 !important;
+    max-width: 280px;
   }
 
   .cat-img {
-    width: 110px;
-    height: 110px;
+    width: 95px !important;
+    height: 95px !important;
+  }
+
+  .cat-display-wrapper {
+    margin: 4px 0 !important;
+  }
+
+  .sparkle-row {
+    font-size: 0.95rem;
+    margin-top: 2px;
+  }
+
+  .signature {
+    font-size: 1.2rem;
+  }
+
+  .forgive-btn {
+    padding: 8px 18px;
+    font-size: 0.95rem;
+  }
+
+  .pink-modal-card {
+    padding: 24px 18px 20px 18px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-cat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 6px;
+  }
+
+  .modal-title {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+  }
+
+  .modal-subtext {
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+  }
+
+  .modal-buttons-row {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .modal-btn {
+    width: 100%;
+    padding: 10px 16px;
   }
 }
 
