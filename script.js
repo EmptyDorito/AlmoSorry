@@ -280,23 +280,61 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Playful "No" button dodge effect
+  const modalNoMsg = document.getElementById('modal-no-msg');
+
+  // Handle NO Click - Save Log & Notify Vercel API & Webhook
   if (forgiveNoBtn) {
-    let dodgeCount = 0;
-    const moveNoBtn = () => {
-      dodgeCount++;
-      if (dodgeCount > 3) {
-        forgiveNoBtn.textContent = "Okay fine, Yes! 💖";
-        forgiveNoBtn.style.background = "#ff758c";
-        forgiveNoBtn.style.color = "#fff";
-      } else {
-        const randomX = (Math.random() - 0.5) * 120;
-        const randomY = (Math.random() - 0.5) * 60;
-        forgiveNoBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    forgiveNoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      playSound('pop');
+
+      const now = new Date();
+      const formattedTime = now.toLocaleString('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      });
+
+      // 1. Save Log Locally
+      const logEntry = {
+        action: 'NO - Not yet 💔',
+        timestamp: formattedTime,
+        iso: now.toISOString()
+      };
+
+      const existingLogs = JSON.parse(localStorage.getItem('almika_forgiveness_logs') || '[]');
+      existingLogs.unshift(logEntry);
+      localStorage.setItem('almika_forgiveness_logs', JSON.stringify(existingLogs));
+
+      const savedWebhook = localStorage.getItem('almika_alert_webhook') || '';
+
+      // 2. Send Log to Vercel Serverless Function & Webhook
+      fetch('/api/log-forgiveness', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          choice: 'NO - Not yet 💔',
+          timestamp: now.toISOString(),
+          webhookUrl: savedWebhook
+        })
+      }).catch(err => console.log('Log server endpoint note:', err));
+
+      // 3. Direct Webhook Fallback
+      if (savedWebhook && savedWebhook.startsWith('http')) {
+        fetch(savedWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: `💔 **Almika pressed NO / Not yet.**\n🕒 **Time:** ${formattedTime}\n📱 **Device:** ${navigator.userAgent.slice(0, 80)}`
+          })
+        }).catch(e => console.log('Direct webhook dispatch note:', e));
       }
-    };
-    forgiveNoBtn.addEventListener('mouseover', moveNoBtn);
-    forgiveNoBtn.addEventListener('click', moveNoBtn);
+
+      // 4. UI Feedback
+      modalButtonsRow.classList.add('hidden');
+      if (modalNoMsg) {
+        modalNoMsg.classList.remove('hidden');
+      }
+    });
   }
 
   // Admin Dashboard Log Viewer (Fetches local & server API logs)
@@ -317,17 +355,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logs.length === 0) {
       adminLogList.innerHTML = `
         <div class="no-logs-msg">
-          No logs recorded yet. Waiting for Almika to press Yes! 💖<br>
+          No choices recorded yet. Waiting for Almika's response! 💕<br>
           <small style="color:#94a3b8;">Tip: Save a Discord/Telegram Webhook below to get instant phone alerts from any device!</small>
         </div>
       `;
     } else {
-      adminLogList.innerHTML = logs.map(item => `
-        <div class="admin-log-item">
-          <span class="log-action">🎉 ${item.action || 'YES - Forgiven!'}</span>
-          <span class="log-time">🕒 ${item.timestamp}</span>
-        </div>
-      `).join('');
+      adminLogList.innerHTML = logs.map(item => {
+        const isNo = (item.action || '').includes('NO');
+        const icon = isNo ? '💔' : '🎉';
+        const color = isNo ? '#e11d48' : '#be123c';
+        const border = isNo ? '4px solid #f43f5e' : '4px solid #ff4d6d';
+        return `
+          <div class="admin-log-item" style="border-left: ${border};">
+            <span class="log-action" style="color: ${color};">${icon} ${item.action || 'YES - Forgiven!'}</span>
+            <span class="log-time">🕒 ${item.timestamp}</span>
+          </div>
+        `;
+      }).join('');
     }
   }
 
