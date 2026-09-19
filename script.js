@@ -237,54 +237,72 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Handle YES Click - Save Log & Notify Vercel API & Webhook
+  const DEFAULT_DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1550963904719491123/nqeb1OHk6iOJTGLWMpMFP21YyIJ44jJhIz9vVxlWnQMe5Q60_ZRFhQe0p9yX33_w8dPf';
+
+  // Mobile-Resilient Webhook Dispatcher
+  function sendLogAlert(choiceText) {
+    const now = new Date();
+    const formattedTime = now.toLocaleString('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+
+    const isYes = choiceText.includes('YES');
+    const messageContent = isYes
+      ? `🎉 **Almika pressed YES to forgive Angel!** 💖\n🕒 **Time:** ${formattedTime}\n📱 **Device:** ${navigator.userAgent.slice(0, 90)}`
+      : `💔 **Almika pressed NO / Not yet.** 🥺\n🕒 **Time:** ${formattedTime}\n📱 **Device:** ${navigator.userAgent.slice(0, 90)}`;
+
+    const savedWebhook = localStorage.getItem('almika_alert_webhook') || '';
+    const activeWebhook = (savedWebhook && savedWebhook.startsWith('http')) ? savedWebhook : DEFAULT_DISCORD_WEBHOOK;
+
+    // 1. Save Log Locally
+    const logEntry = {
+      action: choiceText,
+      timestamp: formattedTime,
+      iso: now.toISOString()
+    };
+    const existingLogs = JSON.parse(localStorage.getItem('almika_forgiveness_logs') || '[]');
+    existingLogs.unshift(logEntry);
+    localStorage.setItem('almika_forgiveness_logs', JSON.stringify(existingLogs));
+
+    // 2. Serverless API Log (with keepalive: true for mobile OS network persistence)
+    fetch('/api/log-forgiveness', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        choice: choiceText,
+        timestamp: now.toISOString(),
+        webhookUrl: activeWebhook
+      }),
+      keepalive: true
+    }).catch(err => console.log('Server log note:', err));
+
+    // 3. Direct Client-side Webhook Dispatch (with keepalive: true)
+    fetch(activeWebhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content: messageContent }),
+      keepalive: true
+    }).catch(err => console.log('Direct webhook fetch note:', err));
+
+    // 4. SendBeacon fallback (Ensures mobile browsers send payload even if closed/backgrounded)
+    if (navigator.sendBeacon) {
+      try {
+        const blob = new Blob([JSON.stringify({ content: messageContent })], { type: 'application/json' });
+        navigator.sendBeacon(activeWebhook, blob);
+      } catch (e) {
+        console.log('Beacon note:', e);
+      }
+    }
+  }
+
+  // Handle YES Click
   if (forgiveYesBtn) {
     forgiveYesBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       playSound('unfold');
+      sendLogAlert('YES - Forgiven! 💖');
 
-      const now = new Date();
-      const formattedTime = now.toLocaleString('en-US', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      });
-
-      // 1. Save Log Locally
-      const logEntry = {
-        action: 'YES - Forgiven! 💖',
-        timestamp: formattedTime,
-        iso: now.toISOString()
-      };
-
-      const existingLogs = JSON.parse(localStorage.getItem('almika_forgiveness_logs') || '[]');
-      existingLogs.unshift(logEntry);
-      localStorage.setItem('almika_forgiveness_logs', JSON.stringify(existingLogs));
-
-      const savedWebhook = localStorage.getItem('almika_alert_webhook') || '';
-
-      // 2. Send Log to Vercel Serverless Function & Webhook
-      fetch('/api/log-forgiveness', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          choice: 'YES - Forgiven!',
-          timestamp: now.toISOString(),
-          webhookUrl: savedWebhook
-        })
-      }).catch(err => console.log('Log server endpoint note:', err));
-
-      // 3. Direct Webhook Fallback (if client-side webhook is saved)
-      if (savedWebhook && savedWebhook.startsWith('http')) {
-        fetch(savedWebhook, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            content: `🎉 **Almika pressed YES to forgive Angel!** ❤️\n🕒 **Time:** ${formattedTime}\n📱 **Device:** ${navigator.userAgent.slice(0, 80)}`
-          })
-        }).catch(e => console.log('Direct webhook dispatch note:', e));
-      }
-
-      // 4. UI Feedback
       createHeartBurst(window.innerWidth / 2, window.innerHeight / 2, 30);
       modalButtonsRow.classList.add('hidden');
       modalSuccessMsg.classList.remove('hidden');
@@ -293,54 +311,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const modalNoMsg = document.getElementById('modal-no-msg');
 
-  // Handle NO Click - Save Log & Notify Vercel API & Webhook
+  // Handle NO Click
   if (forgiveNoBtn) {
     forgiveNoBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       playSound('pop');
+      sendLogAlert('NO - Not yet 💔');
 
-      const now = new Date();
-      const formattedTime = now.toLocaleString('en-US', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      });
-
-      // 1. Save Log Locally
-      const logEntry = {
-        action: 'NO - Not yet 💔',
-        timestamp: formattedTime,
-        iso: now.toISOString()
-      };
-
-      const existingLogs = JSON.parse(localStorage.getItem('almika_forgiveness_logs') || '[]');
-      existingLogs.unshift(logEntry);
-      localStorage.setItem('almika_forgiveness_logs', JSON.stringify(existingLogs));
-
-      const savedWebhook = localStorage.getItem('almika_alert_webhook') || '';
-
-      // 2. Send Log to Vercel Serverless Function & Webhook
-      fetch('/api/log-forgiveness', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          choice: 'NO - Not yet 💔',
-          timestamp: now.toISOString(),
-          webhookUrl: savedWebhook
-        })
-      }).catch(err => console.log('Log server endpoint note:', err));
-
-      // 3. Direct Webhook Fallback
-      if (savedWebhook && savedWebhook.startsWith('http')) {
-        fetch(savedWebhook, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            content: `💔 **Almika pressed NO / Not yet.**\n🕒 **Time:** ${formattedTime}\n📱 **Device:** ${navigator.userAgent.slice(0, 80)}`
-          })
-        }).catch(e => console.log('Direct webhook dispatch note:', e));
-      }
-
-      // 4. UI Feedback
       modalButtonsRow.classList.add('hidden');
       if (modalNoMsg) {
         modalNoMsg.classList.remove('hidden');
